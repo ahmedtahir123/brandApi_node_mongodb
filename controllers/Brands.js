@@ -1,22 +1,20 @@
 const brands = require("../models/model");
-const fs = require("fs");
-const mongoose = require("mongoose");
-const { send } = require("process");
 
 
 
 
   exports.getBrandNamesList = function(req, res) {
     brands.find({}, (err, result)=> {
-    const media = result.map(element => element.name);
+    let data = result.map(element => element.name);
+    data=[...new Set(data)]
       if (err) res.send(err);
-        res.json(media)
+      res.json(data)
     });
   };
   exports.getBrandList = function(req, res) {
     brands.find({}, (err, result)=> {
       if (err) res.send(err);
-        res.json(result)
+      res.json(result)
     });
   };
   exports.enableDisableBrandList = function(req, res) {
@@ -25,10 +23,10 @@ const { send } = require("process");
         res.json(result)
     });
   };
-  exports.addBrand = function(req, res) {
-    brands.find({}, (err, result)=> {
+  exports.addBrand = async function(req,res) {
+   brands.create(req.body, (err, result)=> {
       if (err) res.send(err);
-        res.json(result)
+      res.json("Added")
     });
   };
   exports.getBrandById = function(req, res) {
@@ -44,16 +42,17 @@ const { send } = require("process");
     });
   };
   exports.deleteAllBrands = function(req, res) {
-    brands.find({}, (err, result)=> {
+    brands.remove({},(err,result)=>{
       if (err) res.send(err);
-        res.json(result)
+      res.send("deleted All");
     });
   };
-  exports.deleteBrandById = function(req, res) {
-    brands.find({}, (err, result)=> {
+  exports.deleteBrandById =  function(req, res) {
+    brands.findOneAndRemove({ _id: req.params.id },(err,result)=>{
       if (err) res.send(err);
-        res.json(result)
+      res.send("deleted");
     });
+   
   };
   exports.getBookBrandList = function(req, res) {
     brands.find({}, (err, result)=> {

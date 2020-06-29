@@ -2,8 +2,6 @@
 
 "use strict";
 
-var path = require("path");
-var _ = require("lodash");
 const dotenv = require('dotenv');
 dotenv.config();
 
