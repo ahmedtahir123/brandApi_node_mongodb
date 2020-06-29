@@ -1,4 +1,4 @@
-const brands = require("./model");
+const brands = require("../models/model");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const { send } = require("process");
