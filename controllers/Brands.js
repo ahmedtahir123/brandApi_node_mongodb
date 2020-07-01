@@ -1,33 +1,51 @@
+var _ = require("lodash");
 const brands = require("../models/model");
 const { badRes, goodRes, to } = require("../utils/utils");
 
 exports.getBrandNamesList = async (req, res) => {
-  const [err, result] = await to(brands.find({}));
+  const [err, result] = await to(brands.distinct("name"));
   if (err) return badRes(res, err);
-  let data = result.map((element) => element.name);
-  data = [...new Set(data)];
-  return goodRes(res, data);
+  return goodRes(res, result);
 };
 exports.getBrandList = async (req, res) => {
-  const [err, result] = await to(brands.find({}));
+  let size = Number(req.query.size);
+  const { name, brandCategory, enabled } = req.query;
+  const filter = {};
+  if (name) {
+    filter.name = name;
+  }
+  if (brandCategory) {
+    filter.brandCategory = brandCategory;
+  }
+  if (enabled) {
+    filter.enabled = enabled;
+  }
+  const [err, result] = await to(brands.find(filter).limit(size));
   if (err) return badRes(res, err);
   return goodRes(res, result);
 };
 exports.enableDisableBrandList = async (req, res) => {
-  const status = req.query.status;
-  console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", status);
-  const Id = req.params.id;
+  const status = req.query.enabled;
+  const Id = req.query.codes.split(",");
   let err, result;
-  [err, result] = await to(
-    brands.findOneAndUpdate(
-      { _id: Id },
-      {
-        $set: { enable: status },
-      }
-    )
-  );
-  if (err) return badRes(res, err);
-  return goodRes(res, result);
+  if (status == true) {
+    // if query for enabling brands
+    [err, result] = await to(
+      brands
+        .find({ $and: [{ _id: { $in: Id } }, { enabled: false }] })
+        .updateMany({ enabled: true })
+    );
+    if (err) return badRes(res, err);
+    return goodRes(res, result);
+  } else {
+    [err, result] = await to(
+      brands
+        .find({ $and: [{ _id: { $in: Id } }, { enabled: true }] })
+        .updateMany({ enabled: false })
+    );
+    if (err) return badRes(res, err);
+    return goodRes(res, result);
+  }
 };
 exports.addBrand = async (req, res) => {
   const [err, result] = await to(brands.create(req.body));
@@ -40,13 +58,15 @@ exports.getBrandById = async (req, res) => {
   return goodRes(res, result);
 };
 exports.updateBrand = async (req, res) => {
-  brands.find({}, (err, result) => {
-    if (err) res.send(err);
-    res.json(result);
-  });
+  const [err, result] = await to(
+    brands.update({ _id: req.params.id }, { $set: req.body })
+  );
+  if (err) return badRes(res, err);
+  return goodRes(res, result);
 };
 exports.deleteAllBrands = async (req, res) => {
-  const [err, result] = await to(brands.remove({}));
+  const Id = req.query.codes.split(",");
+  const [err, result] = await to(brands.remove({ _id: { $in: Id } }));
   if (err) return badRes(res, err);
   return goodRes(res, result);
 };
