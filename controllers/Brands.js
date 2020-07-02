@@ -1,5 +1,6 @@
 var _ = require("lodash");
 const brands = require("../models/model");
+
 const { badRes, goodRes, to } = require("../utils/utils");
 
 exports.getBrandNamesList = async (req, res) => {
@@ -77,33 +78,60 @@ exports.deleteBrandById = async (req, res) => {
   if (err) return badRes(res, err);
   return goodRes(res, result);
 };
-exports.getBookBrandList = async (req, res) => {
-  brands.find({}, (err, result) => {
-    if (err) res.send(err);
-    res.json(result);
-  });
-};
-exports.getSelectedBrandList = async (req, res) => {
-  brands.find({}, (err, result) => {
-    if (err) res.send(err);
-    res.json(result);
-  });
-};
-exports.addSelectedBrands = async (req, res) => {
-  brands.find({}, (err, result) => {
-    if (err) res.send(err);
-    res.json(result);
-  });
-};
-exports.removeSelectedBrands = async (req, res) => {
-  brands.find({}, (err, result) => {
-    if (err) res.send(err);
-    res.json(result);
-  });
-};
 exports.getBrandDetail = async (req, res) => {
-  brands.find({}, (err, result) => {
-    if (err) res.send(err);
-    res.json(result);
-  });
+  let size = Number(req.query.size);
+  const { name, brandCategory, enabled } = req.query;
+  const filter = {};
+  if (name) {
+    filter.name = name;
+  }
+  if (brandCategory) {
+    filter.brandCategory = brandCategory;
+  }
+  if (enabled) {
+    filter.enabled = enabled;
+  }
+  const [err, result] = await to(brands.find(filter).limit(size));
+
+  const data = result.map((element) => ({
+    logo: element.logo.url,
+    name: element.name,
+    card: element.card.url,
+    punchLine: element.marketingPunchLine,
+    // rating:element.rating
+    // isRatingEnabled: element.isRatingEnabled,
+    // outlets: element.outlets,
+    outletsCount: element.numberOfPartners,
+    // distance:element.distance,
+    // totalSaving: element.totalSaving,
+    // isDeliveryAvailable: element.isDeliveryAvailable,
+    // deals:element.deals,
+  }));
+
+  if (err) return badRes(res, err);
+  return goodRes(res, data);
 };
+// exports.getBookBrandList = async (req, res) => {
+//   brands.find({}, (err, result) => {
+//     if (err) res.send(err);
+//     res.json(result);
+//   });
+// };
+// exports.getSelectedBrandList = async (req, res) => {
+//   brands.find({}, (err, result) => {
+//     if (err) res.send(err);
+//     res.json(result);
+//   });
+// };
+// exports.addSelectedBrands = async (req, res) => {
+//   brands.find({}, (err, result) => {
+//     if (err) res.send(err);
+//     res.json(result);
+//   });
+// };
+// exports.removeSelectedBrands = async (req, res) => {
+//   brands.find({}, (err, result) => {
+//     if (err) res.send(err);
+//     res.json(result);
+//   });
+// };
