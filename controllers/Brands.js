@@ -1,7 +1,7 @@
 var _ = require("lodash");
 const brands = require("../models/model");
 
-const { badRes, goodRes, to } = require("../utils/utils");
+const { badRes, goodRes, to, pagination } = require("../utils/utils");
 
 exports.getBrandNamesList = async (req, res) => {
   const [err, result] = await to(brands.distinct("name"));
@@ -9,8 +9,7 @@ exports.getBrandNamesList = async (req, res) => {
   return goodRes(res, result);
 };
 exports.getBrandList = async (req, res) => {
-  let size = Number(req.query.size);
-  let { name, brandCategory, enabled, sort } = req.query;
+  let { name, brandCategory, enabled, sort, size, page } = req.query;
   const filter = {};
   if (name) {
     filter.name = name;
@@ -22,17 +21,19 @@ exports.getBrandList = async (req, res) => {
     filter.enabled = enabled;
   }
   if (!sort) {
-    sort = `updatedAt,asc`;
+    sort = `updatedAt,desc`;
   }
-
+  const totalElements = await brands.count();
+  const pageable = pagination(page, size, totalElements);
   const [err, result] = await to(
     brands
       .find(filter)
-      .limit(size)
+      .limit(pageable.Size)
       .sort({ [sort.split(",")[0]]: `${sort.split(",")[1]}` })
   );
+  const data = { result, pageable };
   if (err) return badRes(res, err);
-  return goodRes(res, result);
+  return goodRes(res, data);
 };
 exports.enableDisableBrandList = async (req, res) => {
   const status = Boolean(req.query.enabled);
@@ -101,7 +102,7 @@ exports.getBrandDetail = async (req, res) => {
     filter.enabled = enabled;
   }
   if (!sort) {
-    sort = `updatedAt,asc`;
+    sort = `updatedAt,desc`;
   }
 
   const [err, result] = await to(

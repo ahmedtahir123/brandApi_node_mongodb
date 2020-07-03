@@ -63,7 +63,6 @@ router
   .put(brandController.updateBrand)
   .delete(brandController.deleteBrandById);
 
-// router.route(`/search-service/v1/public/consumer/brand-detail`);
 app.get(
   `/search-service/v1/public/consumer/brand-detail`,
   brandController.getBrandDetail
