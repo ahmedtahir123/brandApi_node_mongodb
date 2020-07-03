@@ -35,10 +35,10 @@ exports.getBrandList = async (req, res) => {
   return goodRes(res, result);
 };
 exports.enableDisableBrandList = async (req, res) => {
-  const status = req.query.enabled;
+  const status = Boolean(req.query.enabled);
   const Id = req.query.codes.split(",");
   let err, result;
-  if (status == true) {
+  if (status) {
     // if query for enabling brands
     [err, result] = await to(
       brands
@@ -89,7 +89,7 @@ exports.deleteBrandById = async (req, res) => {
 };
 exports.getBrandDetail = async (req, res) => {
   let size = Number(req.query.size);
-  let { name, brandCategory, enabled } = req.query;
+  let { name, brandCategory, enabled, sort } = req.query;
   const filter = {};
   if (name) {
     filter.name = name;
