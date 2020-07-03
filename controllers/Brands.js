@@ -89,7 +89,7 @@ exports.deleteBrandById = async (req, res) => {
 };
 exports.getBrandDetail = async (req, res) => {
   let size = Number(req.query.size);
-  const { name, brandCategory, enabled } = req.query;
+  let { name, brandCategory, enabled } = req.query;
   const filter = {};
   if (name) {
     filter.name = name;
@@ -100,8 +100,16 @@ exports.getBrandDetail = async (req, res) => {
   if (enabled) {
     filter.enabled = enabled;
   }
-  const [err, result] = await to(brands.find(filter).limit(size));
+  if (!sort) {
+    sort = `updatedAt,asc`;
+  }
 
+  const [err, result] = await to(
+    brands
+      .find(filter)
+      .limit(size)
+      .sort({ [sort.split(",")[0]]: `${sort.split(",")[1]}` })
+  );
   const data = result.map((element) => ({
     logo: element.logo.url,
     name: element.name,
