@@ -5,8 +5,8 @@
 "use strict";
 
 // Set default node environment to development
-process.env.NODE_ENV = process.env.NODE_ENV || "development";
-
+process.env.NODE_ENV = process.env.NODE_ENV || "production";
+const PORT = process.env.PORT || 4000;
 const express = require("express");
 const mongoose = require("mongoose");
 const config = require("./config/config");
@@ -86,7 +86,8 @@ app.get(
 // ); // how To?
 
 // Start server
-app.listen(config.port);
+// console.log(process.env.NODE_ENV);
+app.listen(PORT, () => console.log("Server Started at Port " + PORT));
 
 // Expose app
 exports = module.exports = app;

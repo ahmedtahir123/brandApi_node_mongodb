@@ -36,10 +36,11 @@ exports.getBrandList = async (req, res) => {
   return goodRes(res, data);
 };
 exports.enableDisableBrandList = async (req, res) => {
-  const status = Boolean(req.query.enabled);
+  const status = req.query.enabled;
   const Id = req.query.codes.split(",");
   let err, result;
-  if (status) {
+  console.log(status);
+  if (status == "true") {
     // if query for enabling brands
     [err, result] = await to(
       brands
