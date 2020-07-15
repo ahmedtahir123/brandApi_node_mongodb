@@ -1,5 +1,11 @@
 var _ = require("lodash");
 const brands = require("../models/model");
+const redis = require("redis");
+
+const redis_client = redis.createClient();
+redis_client.on("error", function (err) {
+  console.log("Error " + err);
+});
 
 const { badRes, goodRes, to, pagination } = require("../utils/utils");
 
@@ -67,6 +73,7 @@ exports.addBrand = async (req, res) => {
 exports.getBrandById = async (req, res) => {
   const [err, result] = await to(brands.findById(req.params.id));
   if (err) return badRes(res, err);
+  redis_client.setex(req.params.id, 3600, JSON.stringify(result));
   return goodRes(res, result);
 };
 exports.updateBrand = async (req, res) => {
@@ -130,27 +137,3 @@ exports.getBrandDetail = async (req, res) => {
   if (err) return badRes(res, err);
   return goodRes(res, data);
 };
-// exports.getBookBrandList = async (req, res) => {
-//   brands.find({}, (err, result) => {
-//     if (err) res.send(err);
-//     res.json(result);
-//   });
-// };
-// exports.getSelectedBrandList = async (req, res) => {
-//   brands.find({}, (err, result) => {
-//     if (err) res.send(err);
-//     res.json(result);
-//   });
-// };
-// exports.addSelectedBrands = async (req, res) => {
-//   brands.find({}, (err, result) => {
-//     if (err) res.send(err);
-//     res.json(result);
-//   });
-// };
-// exports.removeSelectedBrands = async (req, res) => {
-//   brands.find({}, (err, result) => {
-//     if (err) res.send(err);
-//     res.json(result);
-//   });
-// };

@@ -6,10 +6,19 @@
 
 // Set default node environment to development
 process.env.NODE_ENV = process.env.NODE_ENV || "production";
+
 const PORT = process.env.PORT || 4000;
 const express = require("express");
 const mongoose = require("mongoose");
 const config = require("./config/config");
+const redis = require("redis");
+const { badRes, goodRes } = require("./utils/utils");
+
+//configure redis client on port 6379
+const redis_client = redis.createClient();
+redis_client.on("error", function (err) {
+  console.log("Error " + err);
+});
 
 /**
  * Controllers (route handlers).
@@ -17,7 +26,6 @@ const config = require("./config/config");
 const brandController = require("./controllers/Brands");
 
 // Connect to database
-
 const options = {
   poolSize: 10,
   reconnectTries: Number.MAX_VALUE,
@@ -43,6 +51,25 @@ const app = express();
 var router = express.Router();
 app.use(express.json());
 
+//Middleware Function to Check Cache
+const checkCache = (req, res, next) => {
+  const { id } = req.params;
+
+  //get data value for key =id
+  redis_client.get(id, (err, data) => {
+    if (err) {
+      return badRes(res, err);
+    }
+    //if no match found
+    if (data != null) {
+      return goodRes(res, JSON.parse(data));
+    } else {
+      //proceed to next middleware function
+      next();
+    }
+  });
+};
+
 app.use("/partner/v1/public/admin/brands", router);
 
 /**
@@ -59,7 +86,7 @@ router
 
 router
   .route("/:id")
-  .get(brandController.getBrandById)
+  .get(checkCache, brandController.getBrandById)
   .put(brandController.updateBrand)
   .delete(brandController.deleteBrandById);
 
@@ -68,25 +95,7 @@ app.get(
   brandController.getBrandDetail
 );
 
-// app.patch(
-//   `/deal/v1/public/admin/bookBrands/popularBrands/add`,
-//   brandController.addSelectedBrands
-// ); // how To?
-// app.patch(
-//   `/deal/v1/public/admin/bookBrands/popularBrands/remove`,
-//   brandController.removeSelectedBrands
-// ); // how To?
-// app.get(
-//   `/deal/v1/public/admin/bookBrands/:id`,
-//   brandController.getBookBrandList
-// ); // how To?
-// app.get(
-//   `/deal/v1/public/admin/bookBrands/:id/popularBrands`,
-//   brandController.getSelectedBrandList
-// ); // how To?
-
 // Start server
-// console.log(process.env.NODE_ENV);
 app.listen(PORT, () => console.log("Server Started at Port " + PORT));
 
 // Expose app
