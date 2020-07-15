@@ -45,7 +45,6 @@ exports.enableDisableBrandList = async (req, res) => {
   const status = req.query.enabled;
   const Id = req.query.codes.split(",");
   let err, result;
-  console.log(status);
   if (status == "true") {
     // if query for enabling brands
     [err, result] = await to(
@@ -68,6 +67,8 @@ exports.enableDisableBrandList = async (req, res) => {
 exports.addBrand = async (req, res) => {
   const [err, result] = await to(brands.create(req.body));
   if (err) return badRes(res, err);
+  //Store in Redis
+  redis_client.setex(result._id, 3600, JSON.stringify(result));
   return goodRes(res, result);
 };
 exports.getBrandById = async (req, res) => {
@@ -81,6 +82,7 @@ exports.updateBrand = async (req, res) => {
     brands.update({ _id: req.params.id }, { $set: req.body })
   );
   if (err) return badRes(res, err);
+  redis_client.setex(req.params.id, 3600, JSON.stringify(result));
   return goodRes(res, result);
 };
 exports.deleteAllBrands = async (req, res) => {
@@ -94,6 +96,7 @@ exports.deleteBrandById = async (req, res) => {
     brands.findOneAndRemove({ _id: req.params.id })
   );
   if (err) return badRes(res, err);
+  redis_client.del(req.params.id);
   return goodRes(res, result);
 };
 exports.getBrandDetail = async (req, res) => {
